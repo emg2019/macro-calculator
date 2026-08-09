@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Macro Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --carbon:#111315;
+    --graphite:#262A2E;
+    --panel:#1A1D20;
+    --white:#F6F7F5;
+    --gray:#D9DDDE;
+    --border:#33373B;
+    --green:#BCE34A;
+    --cyan:#55BBC8;
+    --text-dark:#F6F7F5;
+    --text-muted:#9BA0A3;
+    --text-on-dark:#F6F7F5;
+    --text-on-dark-muted:#9BA0A3;
+    --radius:6px;
+    --radius-sm:3px;
+    --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    --mono:'JetBrains Mono','SF Mono',Consolas,monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:var(--sans);
+    background:var(--carbon);
+    color:var(--text-dark);
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:760px;margin:0 auto;}
+
+  /* ===== HEADER / COVER BAND ===== */
+  .brandhead{
+    background:var(--carbon);
+    color:var(--text-on-dark);
+    padding:36px 24px 30px;
+    border-bottom:2px solid var(--green);
+  }
+  .brandhead .eyebrow{
+    font-family:var(--mono);
+    font-size:0.7rem;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    color:var(--green);
+    margin:0 0 10px;
+  }
+  .brandhead h1{
+    font-size:1.9rem;
+    font-weight:800;
+    letter-spacing:-0.02em;
+    margin:0 0 8px;
+  }
+  .brandhead p{
+    color:var(--text-on-dark-muted);
+    font-size:0.9rem;
+    margin:0;
+    max-width:480px;
+    line-height:1.5;
+  }
+
+  .content{padding:22px 16px 90px;}
+
+  /* ===== MODULE CARDS ===== */
+  .module{
+    background:var(--graphite);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:20px 22px;
+    margin-bottom:14px;
+  }
+  .module-head{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+    margin:0 0 16px;
+    padding-bottom:10px;
+    border-bottom:1px solid var(--border);
+  }
+  .module-head .idx{
+    font-family:var(--mono);
+    font-size:0.72rem;
+    color:var(--cyan);
+    font-weight:600;
+  }
+  .module-head h2{
+    font-size:0.72rem;
+    text-transform:uppercase;
+    letter-spacing:0.12em;
+    color:var(--text-muted);
+    margin:0;
+    font-weight:600;
+  }
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .field{display:flex;flex-direction:column;gap:6px;}
+  .field.full{grid-column:1/-1;}
+  label{
+    font-family:var(--mono);
+    font-size:0.68rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:var(--text-muted);
+  }
+  input[type=number], select{
+    background:var(--carbon);
+    border:1px solid var(--border);
+    color:var(--text-dark);
+    border-radius:var(--radius-sm);
+    padding:10px 11px;
+    font-family:var(--sans);
+    font-size:0.95rem;
+    font-weight:500;
+    width:100%;
+    color-scheme:dark;
+  }
+  input[type=number]:focus, select:focus{
+    outline:none;
+    border-color:var(--green);
+  }
+  select{cursor:pointer;}
+
+  /* ===== SEGMENTED TOGGLE ===== */
+  .segmented{
+    display:flex;
+    border:1px solid var(--border);
+    border-radius:var(--radius-sm);
+    overflow:hidden;
+    background:var(--carbon);
+  }
+  .segmented button{
+    flex:1;
+    background:var(--carbon);
+    border:none;
+    border-right:1px solid var(--border);
+    color:var(--text-muted);
+    padding:9px 8px;
+    font-family:var(--sans);
+    font-size:0.85rem;
+    font-weight:600;
+    cursor:pointer;
+    transition:all .12s;
+  }
+  .segmented button:last-child{border-right:none;}
+  .segmented button.active{background:var(--white);color:var(--carbon);}
+  .segmented button.active .dot{background:var(--green);}
+
+  /* ===== SLIDERS ===== */
+  .slider-row{display:flex;flex-direction:column;gap:8px;}
+  .slider-row .top{display:flex;justify-content:space-between;align-items:baseline;}
+  .slider-row .top label{margin:0;}
+  .slider-row .top .val{
+    font-family:var(--mono);
+    font-size:0.85rem;
+    font-weight:600;
+    color:var(--text-dark);
+  }
+  .slider-row .top .val .accent{color:var(--green);}
+  input[type=range]{
+    -webkit-appearance:none;
+    width:100%;
+    height:3px;
+    border-radius:2px;
+    background:var(--border);
+    outline:none;
+    margin:4px 0;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    width:16px;height:16px;
+    border-radius:var(--radius-sm);
+    background:var(--white);
+    cursor:pointer;
+    border:2px solid var(--green);
+  }
+  input[type=range]::-moz-range-thumb{
+    width:16px;height:16px;
+    border-radius:var(--radius-sm);
+    background:var(--white);
+    cursor:pointer;
+    border:2px solid var(--green);
+  }
+  .goal-note{
+    font-family:var(--mono);
+    font-size:0.72rem;
+    color:var(--text-muted);
+    letter-spacing:0.01em;
+  }
+
+  /* ===== CALC BUTTON ===== */
+  .calc-btn{
+    width:100%;
+    padding:15px;
+    border:none;
+    border-radius:var(--radius-sm);
+    background:var(--green);
+    color:var(--carbon);
+    font-family:var(--mono);
+    font-size:0.85rem;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    font-weight:600;
+    cursor:pointer;
+    margin-top:4px;
+  }
+  .calc-btn:active{opacity:0.85;}
+
+  /* ===== RESULTS ===== */
+  #results{display:none;}
+  #results.show{display:block;}
+
+  .results-panel{
+    background:var(--panel);
+    color:var(--text-on-dark);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:28px 24px 24px;
+    margin-bottom:14px;
+  }
+  .results-label{
+    font-family:var(--mono);
+    font-size:0.7rem;
+    letter-spacing:0.15em;
+    text-transform:uppercase;
+    color:var(--text-on-dark-muted);
+    margin:0 0 4px;
+    text-align:center;
+  }
+  .headline{text-align:center;padding:4px 10px 20px;}
+  .headline .cals{
+    font-size:3rem;
+    font-weight:800;
+    line-height:1;
+    letter-spacing:-0.03em;
+    color:var(--green);
+  }
+  .headline .label{
+    font-family:var(--mono);
+    color:var(--text-on-dark-muted);
+    font-size:0.75rem;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    margin-top:8px;
+  }
+
+  .macro-bar{
+    display:flex;
+    height:6px;
+    border-radius:3px;
+    overflow:hidden;
+    margin:0 0 20px;
+  }
+  .macro-bar div{height:100%;}
+
+  .macro-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .macro-card{
+    background:var(--graphite);
+    border:1px solid var(--border);
+    border-radius:var(--radius-sm);
+    padding:14px 10px;
+    text-align:center;
+  }
+  .macro-card .name{
+    font-family:var(--mono);
+    font-size:0.66rem;
+    color:var(--text-on-dark-muted);
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:5px;
+  }
+  .macro-card .dot{width:6px;height:6px;border-radius:1px;display:inline-block;}
+  .macro-card .grams{
+    font-size:1.4rem;
+    font-weight:700;
+    margin:8px 0 2px;
+    color:var(--text-on-dark);
+    letter-spacing:-0.01em;
+  }
+  .macro-card .cals{font-family:var(--mono);font-size:0.68rem;color:var(--text-on-dark-muted);}
+  .macro-card .pct{font-family:var(--mono);font-size:0.68rem;color:var(--text-on-dark-muted);margin-top:3px;}
+
+  .detail-module{
+    background:var(--graphite);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:6px 22px;
+  }
+  .detail-table{width:100%;border-collapse:collapse;font-size:0.85rem;}
+  .detail-table td{padding:12px 2px;border-bottom:1px solid var(--border);font-family:var(--sans);}
+  .detail-table tr:last-child td{border-bottom:none;}
+  .detail-table td:first-child{
+    color:var(--text-muted);
+    font-family:var(--mono);
+    font-size:0.72rem;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+  }
+  .detail-table td:last-child{text-align:right;font-weight:700;font-variant-numeric:tabular-nums;color:var(--text-dark);}
+
+  footer{
+    font-family:var(--mono);
+    text-align:center;
+    color:var(--text-muted);
+    font-size:0.68rem;
+    letter-spacing:0.02em;
+    margin-top:22px;
+    line-height:1.7;
+    padding:0 10px;
+  }
+
+  @media (max-width:480px){
+    .grid{grid-template-columns:1fr;}
+    .macro-grid{grid-template-columns:1fr;}
+    .headline .cals{font-size:2.3rem;}
+    .brandhead{padding:28px 18px 24px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="brandhead">
+    <p class="eyebrow">/ PERFORMANCE NUTRITION</p>
+    <h1>Macro Calculator</h1>
+    <p>Enter your measurements, set a goal, and calculate a precise daily calorie and macronutrient target.</p>
+  </div>
+
+  <div class="content">
+
+    <div class="module">
+      <div class="module-head"><span class="idx">01</span><h2>About You</h2></div>
+      <div class="grid">
+        <div class="field">
+          <label>Sex</label>
+          <div class="segmented" id="sexToggle">
+            <button data-val="male" class="active">Male</button>
+            <button data-val="female">Female</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Units</label>
+          <div class="segmented" id="unitToggle">
+            <button data-val="imperial" class="active">LB / IN</button>
+            <button data-val="metric">KG / CM</button>
+          </div>
+        </div>
+        <div class="field">
+          <label id="weightLabel">Current Weight (lb)</label>
+          <input type="number" id="weight" value="178" min="0">
+        </div>
+        <div class="field">
+          <label id="heightLabel">Height (in)</label>
+          <input type="number" id="height" value="69" min="0">
+        </div>
+        <div class="field">
+          <label>Age</label>
+          <input type="number" id="age" value="39" min="0">
+        </div>
+        <div class="field">
+          <label id="goalWeightLabel">Goal Body Weight (lb)</label>
+          <input type="number" id="goalWeight" value="168" min="0">
+        </div>
+      </div>
+    </div>
+
+    <div class="module">
+      <div class="module-head"><span class="idx">02</span><h2>Activity Level</h2></div>
+      <div class="field full">
+        <select id="activity">
+          <option value="1.2">Sedentary — little to no exercise</option>
+          <option value="1.375" selected>Lightly active — 1-3 days/week</option>
+          <option value="1.55">Moderately active — 3-5 days/week</option>
+          <option value="1.725">Very active — 6-7 days/week</option>
+          <option value="1.9">Extremely active — 2x/day or physical job</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="module">
+      <div class="module-head"><span class="idx">03</span><h2>Goal</h2></div>
+      <div class="field full" style="margin-bottom:16px;">
+        <div class="segmented" id="goalToggle">
+          <button data-val="cut" class="active">Cut</button>
+          <button data-val="maintain">Maintain</button>
+          <button data-val="gain">Gain</button>
+        </div>
+      </div>
+      <div class="field full" id="adjustRow">
+        <div class="slider-row">
+          <div class="top">
+            <label id="adjustLabel">Calorie deficit</label>
+            <span class="val"><span id="adjustVal">300</span> CAL/DAY</span>
+          </div>
+          <input type="range" id="adjust" min="0" max="1000" step="25" value="300">
+          <div class="goal-note" id="adjustNote">~250–750 BELOW MAINTENANCE · ~0.5–1.5 LB/WEEK LOSS</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="module">
+      <div class="module-head"><span class="idx">04</span><h2>Macro Settings</h2></div>
+      <div class="field full" style="margin-bottom:18px;">
+        <div class="slider-row">
+          <div class="top">
+            <label>Protein</label>
+            <span class="val"><span id="proteinVal">0.8</span> G/LB GOAL BW</span>
+          </div>
+          <input type="range" id="proteinFactor" min="0.6" max="1.0" step="0.05" value="0.8">
+          <div class="goal-note">ISSN PROTOCOL REF: 1.4–2.0 G/KG · ≈ <span id="proteinKgEq">1.76</span> G/KG AT CURRENT SETTING</div>
+        </div>
+      </div>
+      <div class="field full">
+        <div class="slider-row">
+          <div class="top">
+            <label>Fat</label>
+            <span class="val"><span id="fatVal">30</span>% OF TOTAL CAL</span>
+          </div>
+          <input type="range" id="fatPercent" min="20" max="35" step="1" value="30">
+          <div class="goal-note">REMAINDER FILLS AS CARBOHYDRATE</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="calc-btn" id="calcBtn">Calculate →</button>
+
+    <div id="results">
+      <div class="results-panel">
+        <p class="results-label">Daily Target</p>
+        <div class="headline">
+          <div class="cals" id="goalCals">0</div>
+          <div class="label">Calories</div>
+        </div>
+
+        <div class="macro-bar">
+          <div id="barProtein" style="background:var(--cyan);"></div>
+          <div id="barFat" style="background:var(--text-on-dark-muted);"></div>
+          <div id="barCarbs" style="background:var(--green);"></div>
+        </div>
+
+        <div class="macro-grid">
+          <div class="macro-card">
+            <div class="name"><span class="dot" style="background:var(--cyan);"></span>Protein</div>
+            <div class="grams" id="proteinG">0g</div>
+            <div class="cals" id="proteinCals">0 cal</div>
+            <div class="pct" id="proteinPct">0%</div>
+          </div>
+          <div class="macro-card">
+            <div class="name"><span class="dot" style="background:var(--text-on-dark-muted);"></span>Fat</div>
+            <div class="grams" id="fatG">0g</div>
+            <div class="cals" id="fatCals">0 cal</div>
+            <div class="pct" id="fatPct">0%</div>
+          </div>
+          <div class="macro-card">
+            <div class="name"><span class="dot" style="background:var(--green);"></span>Carbs</div>
+            <div class="grams" id="carbsG">0g</div>
+            <div class="cals" id="carbsCals">0 cal</div>
+            <div class="pct" id="carbsPct">0%</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="detail-module">
+        <table class="detail-table">
+          <tr><td>BMR · Harris-Benedict</td><td id="bmrOut">—</td></tr>
+          <tr><td>TDEE · Maintenance</td><td id="tdeeOut">—</td></tr>
+          <tr><td>Adjustment</td><td id="adjustOut">—</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <footer>
+      [ BMR — HARRIS-BENEDICT EQUATION ]&nbsp;&nbsp;&nbsp;[ MACROS — ISSN PROTEIN PROTOCOL ]<br>
+      ESTIMATES ONLY. RE-CALIBRATE AGAINST REAL-WORLD RESULTS EVERY 2–3 WEEKS.
+    </footer>
+
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+let state = { sex:'male', units:'imperial', goal:'cut' };
+
+function setupToggle(id, key, onChange){
+  const el = $(id);
+  el.querySelectorAll('button').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      el.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      state[key] = btn.dataset.val;
+      if(onChange) onChange(btn.dataset.val);
+    });
+  });
+}
+
+setupToggle('sexToggle','sex');
+setupToggle('unitToggle','units', (val)=>{
+  const weight = $('weight'), height = $('height'), goalWeight = $('goalWeight');
+  if(val === 'metric'){
+    weight.value = Math.round(weight.value / 2.205);
+    goalWeight.value = Math.round(goalWeight.value / 2.205);
+    height.value = Math.round(height.value * 2.54);
+    $('weightLabel').textContent = 'Current Weight (kg)';
+    $('heightLabel').textContent = 'Height (cm)';
+    $('goalWeightLabel').textContent = 'Goal Body Weight (kg)';
+  } else {
+    weight.value = Math.round(weight.value * 2.205);
+    goalWeight.value = Math.round(goalWeight.value * 2.205);
+    height.value = Math.round(height.value / 2.54);
+    $('weightLabel').textContent = 'Current Weight (lb)';
+    $('heightLabel').textContent = 'Height (in)';
+    $('goalWeightLabel').textContent = 'Goal Body Weight (lb)';
+  }
+});
+
+setupToggle('goalToggle','goal', (val)=>{
+  const adjust = $('adjust'), label = $('adjustLabel'), note = $('adjustNote'), row = $('adjustRow');
+  if(val === 'cut'){
+    row.style.display = '';
+    label.textContent = 'Calorie deficit';
+    adjust.min = 0; adjust.max = 1000; adjust.value = 300;
+    note.textContent = '~250–750 BELOW MAINTENANCE · ~0.5–1.5 LB/WEEK LOSS';
+  } else if(val === 'gain'){
+    row.style.display = '';
+    label.textContent = 'Calorie surplus';
+    adjust.min = 0; adjust.max = 800; adjust.value = 300;
+    note.textContent = '~250–500 ABOVE MAINTENANCE · LEAN MUSCLE GAIN';
+  } else {
+    row.style.display = 'none';
+  }
+  $('adjustVal').textContent = adjust.value;
+});
+
+$('adjust').addEventListener('input', e => $('adjustVal').textContent = e.target.value);
+$('proteinFactor').addEventListener('input', e => {
+  const v = parseFloat(e.target.value);
+  $('proteinVal').textContent = v.toFixed(2);
+  $('proteinKgEq').textContent = (v * 2.205).toFixed(2);
+});
+$('fatPercent').addEventListener('input', e => $('fatVal').textContent = e.target.value);
+
+function toKg(w){ return state.units === 'metric' ? w : w / 2.205; }
+function toCm(h){ return state.units === 'metric' ? h : h * 2.54; }
+function toLb(w){ return state.units === 'metric' ? w * 2.205 : w; }
+
+function calculate(){
+  const weight = parseFloat($('weight').value) || 0;
+  const height = parseFloat($('height').value) || 0;
+  const age = parseFloat($('age').value) || 0;
+  const goalWeight = parseFloat($('goalWeight').value) || 0;
+  const activityMult = parseFloat($('activity').value);
+  const adjust = parseFloat($('adjust').value) || 0;
+  const proteinFactor = parseFloat($('proteinFactor').value);
+  const fatPercent = parseFloat($('fatPercent').value) / 100;
+
+  const wKg = toKg(weight);
+  const hCm = toCm(height);
+  const goalWLb = toLb(goalWeight);
+
+  // Harris-Benedict BMR
+  let bmr;
+  if(state.sex === 'male'){
+    bmr = (10 * wKg) + (6.25 * hCm) - (5 * age) + 5;
+  } else {
+    bmr = (10 * wKg) + (6.25 * hCm) - (5 * age) - 161;
+  }
+
+  const tdee = bmr * activityMult;
+
+  let goalCals;
+  if(state.goal === 'cut') goalCals = tdee - adjust;
+  else if(state.goal === 'gain') goalCals = tdee + adjust;
+  else goalCals = tdee;
+
+  const proteinG = goalWLb * proteinFactor;
+  const proteinCals = proteinG * 4;
+  const fatCals = goalCals * fatPercent;
+  const fatG = fatCals / 9;
+  const carbCals = goalCals - proteinCals - fatCals;
+  const carbG = carbCals / 4;
+
+  $('goalCals').textContent = Math.round(goalCals).toLocaleString();
+  $('bmrOut').textContent = Math.round(bmr).toLocaleString() + ' cal';
+  $('tdeeOut').textContent = Math.round(tdee).toLocaleString() + ' cal';
+  $('adjustOut').textContent = state.goal === 'maintain' ? 'None (maintenance)' :
+    (state.goal === 'cut' ? '-' : '+') + Math.round(adjust).toLocaleString() + ' cal';
+
+  $('proteinG').textContent = Math.round(proteinG) + 'g';
+  $('fatG').textContent = Math.round(fatG) + 'g';
+  $('carbsG').textContent = Math.round(carbG) + 'g';
+
+  $('proteinCals').textContent = Math.round(proteinCals).toLocaleString() + ' cal';
+  $('fatCals').textContent = Math.round(fatCals).toLocaleString() + ' cal';
+  $('carbsCals').textContent = Math.round(carbCals).toLocaleString() + ' cal';
+
+  const pPct = (proteinCals / goalCals) * 100;
+  const fPct = (fatCals / goalCals) * 100;
+  const cPct = (carbCals / goalCals) * 100;
+
+  $('proteinPct').textContent = Math.round(pPct) + '%';
+  $('fatPct').textContent = Math.round(fPct) + '%';
+  $('carbsPct').textContent = Math.round(cPct) + '%';
+
+  $('barProtein').style.width = pPct + '%';
+  $('barFat').style.width = fPct + '%';
+  $('barCarbs').style.width = cPct + '%';
+
+  $('results').classList.add('show');
+  $('results').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+$('calcBtn').addEventListener('click', calculate);
+
+// Calculate once on load with default values
+calculate();
+</script>
+</body>
+</html>
