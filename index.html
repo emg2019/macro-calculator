@@ -160,8 +160,12 @@
     font-size:0.85rem;
     font-weight:600;
     color:var(--text-dark);
+    transition:color .5s ease;
   }
+  .slider-row .top .val.auto-pulse{color:var(--green);}
   .slider-row .top .val .accent{color:var(--green);}
+  .goal-note{transition:color .5s ease;}
+  .goal-note.auto-pulse{color:var(--cyan);}
   input[type=range]{
     -webkit-appearance:none;
     width:100%;
@@ -415,7 +419,7 @@
             <span class="val"><span id="proteinVal">0.8</span> G/LB GOAL BW</span>
           </div>
           <input type="range" id="proteinFactor" min="0.6" max="1.0" step="0.05" value="0.8">
-          <div class="goal-note">ISSN PROTOCOL REF: 1.4–2.0 G/KG · ≈ <span id="proteinKgEq">1.76</span> G/KG AT CURRENT SETTING</div>
+          <div class="goal-note" id="proteinNote">ISSN PROTOCOL REF: 1.4–2.0 G/KG · ≈ <span id="proteinKgEq">1.76</span> G/KG AT CURRENT SETTING</div>
         </div>
       </div>
       <div class="field full">
@@ -425,7 +429,7 @@
             <span class="val"><span id="fatVal">30</span>% OF TOTAL CAL</span>
           </div>
           <input type="range" id="fatPercent" min="20" max="35" step="1" value="30">
-          <div class="goal-note">REMAINDER FILLS AS CARBOHYDRATE</div>
+          <div class="goal-note" id="fatNote">REMAINDER FILLS AS CARBOHYDRATE</div>
         </div>
       </div>
     </div>
@@ -538,15 +542,72 @@ setupToggle('goalToggle','goal', (val)=>{
     row.style.display = 'none';
   }
   $('adjustVal').textContent = adjust.value;
+  applyFatDefault();
 });
 
 $('adjust').addEventListener('input', e => $('adjustVal').textContent = e.target.value);
+
+/* ===== SMART DEFAULTS =====
+   Give the user a science-based starting point on the protein and fat
+   sliders, driven by activity level (protein) and goal (fat) — then let
+   them freely drag from there. Manually touching a slider clears the
+   "auto-set" note back to the plain reference text. */
+const PROTEIN_DEFAULTS = { '1.2':0.70, '1.375':0.75, '1.55':0.80, '1.725':0.90, '1.9':1.00 };
+const ACTIVITY_LABELS = { '1.2':'SEDENTARY', '1.375':'LIGHTLY ACTIVE', '1.55':'MODERATELY ACTIVE', '1.725':'VERY ACTIVE', '1.9':'EXTREMELY ACTIVE' };
+const FAT_DEFAULTS = { cut:22, maintain:27, gain:22 };
+const GOAL_LABELS = { cut:'CUT', maintain:'MAINTAIN', gain:'GAIN' };
+
+function pulse(el){
+  el.classList.add('auto-pulse');
+  setTimeout(()=> el.classList.remove('auto-pulse'), 900);
+}
+
+function setProteinNote(auto){
+  const activityLabel = ACTIVITY_LABELS[$('activity').value] || '';
+  const kgEq = (parseFloat($('proteinFactor').value) * 2.205).toFixed(2);
+  const note = $('proteinNote');
+  note.innerHTML = auto
+    ? `AUTO-SET FOR ${activityLabel} · ISSN REF 1.4–2.0 G/KG · ≈ <span id="proteinKgEq">${kgEq}</span> G/KG`
+    : `ISSN PROTOCOL REF: 1.4–2.0 G/KG · ≈ <span id="proteinKgEq">${kgEq}</span> G/KG AT CURRENT SETTING`;
+  if(auto) pulse(note);
+}
+
+function setFatNote(auto){
+  const goalLabel = GOAL_LABELS[state.goal] || '';
+  const note = $('fatNote');
+  note.textContent = auto
+    ? `AUTO-SET FOR ${goalLabel} · REMAINDER FILLS AS CARBOHYDRATE · ADJUST ANYTIME`
+    : `REMAINDER FILLS AS CARBOHYDRATE`;
+  if(auto) pulse(note);
+}
+
+function applyProteinDefault(){
+  const v = PROTEIN_DEFAULTS[$('activity').value] ?? 0.8;
+  $('proteinFactor').value = v;
+  $('proteinVal').textContent = v.toFixed(2);
+  pulse($('proteinVal').parentElement);
+  setProteinNote(true);
+}
+
+function applyFatDefault(){
+  const v = FAT_DEFAULTS[state.goal] ?? 25;
+  $('fatPercent').value = v;
+  $('fatVal').textContent = v;
+  pulse($('fatVal').parentElement);
+  setFatNote(true);
+}
+
+$('activity').addEventListener('change', applyProteinDefault);
+
 $('proteinFactor').addEventListener('input', e => {
   const v = parseFloat(e.target.value);
   $('proteinVal').textContent = v.toFixed(2);
-  $('proteinKgEq').textContent = (v * 2.205).toFixed(2);
+  setProteinNote(false);
 });
-$('fatPercent').addEventListener('input', e => $('fatVal').textContent = e.target.value);
+$('fatPercent').addEventListener('input', e => {
+  $('fatVal').textContent = e.target.value;
+  setFatNote(false);
+});
 
 function toKg(w){ return state.units === 'metric' ? w : w / 2.205; }
 function toCm(h){ return state.units === 'metric' ? h : h * 2.54; }
@@ -620,7 +681,9 @@ function calculate(){
 
 $('calcBtn').addEventListener('click', calculate);
 
-// Calculate once on load with default values
+// Set science-based starting points for protein/fat, then calculate once on load
+applyProteinDefault();
+applyFatDefault();
 calculate();
 </script>
 </body>
